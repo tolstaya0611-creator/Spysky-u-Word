@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест: Списки в текстовому документі Word</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-6 sm:p-10 border border-emerald-100/50">
+        
+        <!-- Main Quiz Title Added -->
+        <div class="text-center mb-6 pb-4 border-b border-slate-100">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">Списки у Word</h1>
+            <p class="text-slate-500 text-sm mt-1">Перевірте свої знання про текстові списки</p>
+        </div>
+
+        <!-- Header & Progress -->
+        <div id="quiz-header" class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <span id="question-counter" class="text-xs sm:text-sm font-semibold tracking-wide uppercase px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full">
+                    Питання 1 з 12
+                </span>
+                <span id="score-tracker" class="text-xs sm:text-sm font-medium text-slate-500">
+                    Інтерактивний тест
+                </span>
+            </div>
+            <!-- Progress bar -->
+            <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-emerald-600 h-2.5 rounded-full transition-all duration-500" style="width: 8.33%;"></div>
+            </div>
+        </div>
+
+        <!-- Question Area -->
+        <div id="question-container" class="fade-in">
+            <h2 id="question-text" class="text-lg sm:text-xl font-bold text-slate-800 mb-6 leading-snug">
+                Завантаження питання...
+            </h2>
+
+            <!-- Visual Mockup Container (if question has image/diagram) -->
+            <div id="visual-container" class="mb-6 hidden">
+                <div class="bg-emerald-900 text-white p-4 rounded-2xl shadow-inner font-sans inline-block max-w-full overflow-x-auto">
+                    <div id="visual-content" class="text-sm leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Options List -->
+            <div id="options-container" class="space-y-3 mb-8">
+                <!-- Dynamic options inserted via JS -->
+            </div>
+        </div>
+
+        <!-- Navigation / Action Footer -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+            <button id="prev-btn" onclick="prevQuestion()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                Назад
+            </button>
+            <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all">
+                Далі
+            </button>
+        </div>
+
+        <!-- Result Screen (Hidden by default) -->
+        <div id="result-container" class="hidden text-center py-8 fade-in">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl font-bold shadow-inner">
+                🏆
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-800 mb-3">Тест завершено!</h2>
+            <p class="text-slate-600 text-base sm:text-lg mb-8">Ви успішно пройшли тестування з теми списків у Word.</p>
+            
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-6 mb-8 max-w-sm mx-auto shadow-sm">
+                <span class="block text-sm text-slate-500 uppercase tracking-wider mb-1 font-medium">Ваш результат</span>
+                <span id="result-percentage" class="text-4xl sm:text-5xl font-extrabold text-emerald-600">0%</span>
+            </div>
+
+            <button onclick="restartQuiz()" class="w-full sm:w-auto px-8 py-3.5 bg-emerald-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition-all">
+                Спробувати знову
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Data set of 12 questions based on user's prompt and images
+        const questions = [
+            {
+                question: "Списки яких типів можна створити у текстовому документі Word?",
+                type: "multiple", // multiple choice
+                options: [
+                    "Маркований",
+                    "Нумерований",
+                    "Цифрові",
+                    "Послідовний",
+                    "Багаторівневі"
+                ],
+                correct: [0, 1, 4] // Indices for Маркований, Нумерований, Багаторівневі
+            },
+            {
+                question: "Що стоїть на початку кожного абзацу маркованого списку?",
+                type: "single",
+                options: [
+                    "Спеціальний символ - маркер",
+                    "Відступ (або пробіл)",
+                    "Порядковий номер (число або літера)"
+                ],
+                correct: 0
+            },
+            {
+                question: "Що стоїть на початку кожного абзацу нумерованого списку?",
+                type: "single",
+                options: [
+                    "Символ або малюнок",
+                    "Відступ (або пробіл)",
+                    "Порядковий номер (число або літера)"
+                ],
+                correct: 2
+            },
+            {
+                question: "Який тип списку зображено на малюнку?",
+                type: "single",
+                visual: `<div class="font-bold italic text-base mb-2">Пори року:</div>
+                         <div class="pl-3 space-y-1"><div>➢ Зима</div><div>➢ Весна</div><div>➢ Літо</div><div>➢ Осінь</div></div>`,
+                options: [
+                    "Маркований",
+                    "Багаторівневий",
+                    "Нумерований"
+                ],
+                correct: 0
+            },
+            {
+                question: "Який тип списку зображено на малюнку?",
+                type: "single",
+                visual: `<div class="font-bold italic text-base mb-2">Міста:</div>
+                         <div class="pl-3 space-y-1"><div>1. Запоріжжя</div><div>2. Київ</div><div>3. Кременчук</div><div>4. Чернівці</div></div>`,
+                options: [
+                    "Маркований",
+                    "Багаторівневий",
+                    "Нумерований"
+                ],
+                correct: 2
+            },
+            {
+                question: "Який тип списку зображено на малюнку?",
+                type: "single",
+                visual: `<div class="font-bold italic text-base mb-1">Пори року:</div>
+                         <div class="pl-2 space-y-1 text-xs sm:text-sm">
+                            <div>1. Зима</div>
+                            <div class="pl-4">• Грудень • Січень • Лютий</div>
+                            <div>2. Весна</div>
+                            <div class="pl-4">• Березень • Квітень • Травень</div>
+                         </div>`,
+                options: [
+                    "Маркований",
+                    "Багаторівневий",
+                    "Нумерований"
+                ],
+                correct: 1
+            },
+            {
+                question: "Призначення кнопки створення списку з цифрами (1, 2, 3):",
+                type: "single",
+                visual: `<div class="flex items-center gap-2 bg-slate-100 text-slate-800 p-2 rounded font-mono text-sm inline-flex">
+                            <span class="bg-white border px-1.5 py-0.5 rounded shadow-sm font-bold">1≡▼</span>
+                            <span class="text-xs font-sans text-slate-600">Призначення кнопки</span>
+                         </div>`,
+                options: [
+                    "Створити нумерований список",
+                    "Створити багаторівневий список",
+                    "Створити маркований список"
+                ],
+                correct: 0
+            },
+            {
+                question: "Призначення кнопки створення списку з крапками:",
+                type: "single",
+                visual: `<div class="flex items-center gap-2 bg-slate-100 text-slate-800 p-2 rounded font-mono text-sm inline-flex">
+                            <span class="bg-white border px-1.5 py-0.5 rounded shadow-sm font-bold">≡▼</span>
+                            <span class="text-xs font-sans text-slate-600">Призначення кнопки</span>
+                         </div>`,
+                options: [
+                    "Створити нумерований список",
+                    "Створити багаторівневий список",
+                    "Створити маркований список"
+                ],
+                correct: 2
+            },
+            {
+                question: "Призначення кнопки створення багаторівневого списку:",
+                type: "single",
+                visual: `<div class="flex items-center gap-2 bg-slate-100 text-slate-800 p-2 rounded font-mono text-sm inline-flex">
+                            <span class="bg-white border px-1.5 py-0.5 rounded shadow-sm font-bold">1.-▼</span>
+                            <span class="text-xs font-sans text-slate-600">Призначення кнопки</span>
+                         </div>`,
+                options: [
+                    "Створити нумерований список",
+                    "Створити багаторівневий список",
+                    "Створити маркований список"
+                ],
+                correct: 1
+            },
+            {
+                question: "Призначення кнопки сортування (A-Z зі стрілочкою вниз):",
+                type: "single",
+                visual: `<div class="flex items-center gap-2 bg-slate-100 text-slate-800 p-2 rounded font-mono text-sm inline-flex">
+                            <span class="bg-white border px-1.5 py-0.5 rounded shadow-sm font-bold">A<span class="text-purple-600">Z</span>↓</span>
+                            <span class="text-xs font-sans text-slate-600">Призначення кнопки</span>
+                         </div>`,
+                options: [
+                    "Сортувати список",
+                    "Установити значення нумерації",
+                    "Створити список"
+                ],
+                correct: 0
+            },
+            {
+                question: "У багаторівневих списках щоб збільшити відступ потрібно натиснути на кнопку:",
+                type: "single",
+                visual: `<div class="space-y-1 bg-slate-100 p-2 rounded inline-block text-xs text-slate-700">
+                            <div>➔ Варіант зі стрілкою праворуч або зміною рівня</div>
+                         </div>`,
+                options: [
+                    "Зменшити відступ (стрілка вліво)",
+                    "Збільшити відступ (стрілка вправо)",
+                    "Вирівнювання по центру",
+                    "Сортування"
+                ],
+                correct: 1
+            },
+            {
+                question: "У багаторівневих списках щоб зменшити відступ потрібно натиснути на кнопку:",
+                type: "single",
+                visual: `<div class="space-y-1 bg-slate-100 p-2 rounded inline-block text-xs text-slate-700">
+                            <div>⬅️ Варіант зі стрілкою вліво</div>
+                         </div>`,
+                options: [
+                    "Зменшити відступ (стрілка вліво)",
+                    "Збільшити відступ (стрілка вправо)",
+                    "Вирівнювання по центру",
+                    "Сортування"
+                ],
+                correct: 0
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = Array(questions.length).fill(null);
+
+        // DOM Elements
+        const questionCounterEl = document.getElementById('question-counter');
+        const progressBarEl = document.getElementById('progress-bar');
+        const questionTextEl = document.getElementById('question-text');
+        const visualContainerEl = document.getElementById('visual-container');
+        const visualContentEl = document.getElementById('visual-content');
+        const optionsContainerEl = document.getElementById('options-container');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const questionContainer = document.getElementById('question-container');
+        const resultContainer = document.getElementById('result-container');
+        const quizHeader = document.getElementById('quiz-header');
+
+        function loadQuestion() {
+            const q = questions[currentQuestionIndex];
+            
+            // Update header indicators
+            questionCounterEl.textContent = `Питання ${currentQuestionIndex + 1} з ${questions.length}`;
+            const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
+            progressBarEl.style.width = `${progressPercent}%`;
+
+            // Set question text
+            questionTextEl.textContent = q.question;
+
+            // Handle visual blocks
+            if (q.visual) {
+                visualContentEl.innerHTML = q.visual;
+                visualContainerEl.classList.remove('hidden');
+            } else {
+                visualContainerEl.classList.add('hidden');
+            }
+
+            // Render options
+            optionsContainerEl.innerHTML = '';
+            
+            // Initialize user answers array if empty for this question
+            if (userAnswers[currentQuestionIndex] === null) {
+                userAnswers[currentQuestionIndex] = q.type === 'multiple' ? [] : null;
+            }
+
+            q.options.forEach((optionText, index) => {
+                const label = document.createElement('label');
+                label.className = "flex items-center p-4 rounded-2xl border-2 border-slate-200/80 hover:border-emerald-500/50 hover:bg-emerald-50/30 cursor-pointer transition-all group";
+                
+                let inputType = q.type === 'multiple' ? 'checkbox' : 'radio';
+                let isChecked = false;
+
+                if (q.type === 'multiple') {
+                    isChecked = userAnswers[currentQuestionIndex].includes(index);
+                } else {
+                    isChecked = userAnswers[currentQuestionIndex] === index;
+                }
+
+                label.innerHTML = `
+                    <input type="${inputType}" name="option" value="${index}" ${isChecked ? 'checked' : ''} 
+                           class="w-5 h-5 text-emerald-600 border-slate-300 focus:ring-emerald-500 rounded accent-emerald-600 mr-3.5">
+                    <span class="text-slate-700 font-medium group-hover:text-slate-900">${optionText}</span>
+                `;
+
+                // Add change listener
+                const input = label.querySelector('input');
+                input.addEventListener('change', (e) => {
+                    handleSelection(index, q.type, e.target.checked);
+                });
+
+                optionsContainerEl.appendChild(label);
+            });
+
+            // Update button states
+            prevBtn.disabled = currentQuestionIndex === 0;
+            nextBtn.textContent = currentQuestionIndex === questions.length - 1 ? 'Завершити тест' : 'Далі';
+        }
+
+        function handleSelection(optionIndex, type, isChecked) {
+            if (type === 'multiple') {
+                let currentSelections = userAnswers[currentQuestionIndex];
+                if (isChecked) {
+                    if (!currentSelections.includes(optionIndex)) {
+                        currentSelections.push(optionIndex);
+                    }
+                } else {
+                    userAnswers[currentQuestionIndex] = currentSelections.filter(i => i !== optionIndex);
+                }
+            } else {
+                userAnswers[currentQuestionIndex] = optionIndex;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function finishQuiz() {
+            // Calculate score as a percentage without revealing correct/incorrect answers
+            let correctCount = 0;
+
+            questions.forEach((q, idx) => {
+                const userAns = userAnswers[idx];
+                if (q.type === 'multiple') {
+                    // Check if arrays match exactly
+                    const correctArr = [...q.correct].sort();
+                    const userArr = [...(userAns || [])].sort();
+                    if (JSON.stringify(correctArr) === JSON.stringify(userArr)) {
+                        correctCount++;
+                    }
+                } else {
+                    if (userAns === q.correct) {
+                        correctCount++;
+                    }
+                }
+            });
+
+            const percentage = Math.round((correctCount / questions.length) * 100);
+
+            // Hide quiz elements and show result
+            quizHeader.classList.add('hidden');
+            questionContainer.classList.add('hidden');
+            prevBtn.classList.add('hidden');
+            nextBtn.classList.add('hidden');
+
+            document.getElementById('result-percentage').textContent = `${percentage}%`;
+            resultContainer.classList.remove('hidden');
+        }
+
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            userAnswers = Array(questions.length).fill(null);
+            
+            resultContainer.classList.add('hidden');
+            quizHeader.classList.remove('hidden');
+            questionContainer.classList.remove('hidden');
+            prevBtn.classList.remove('hidden');
+            nextBtn.classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        // Initialize quiz on load
+        window.onload = function() {
+            loadQuestion();
+        };
+    </script>
+</body>
+</html>
